@@ -37,6 +37,8 @@ h1{font-size:clamp(56px,11vw,112px);letter-spacing:-.01em;background:linear-grad
 @keyframes shine{0%,100%{background-position:100% 0}50%{background-position:0 0}}
 .tag{font:italic 500 clamp(22px,3.4vw,30px)/1.3 "Cormorant Garamond",serif;margin:14px 0 26px;max-width:24ch}
 .cta{display:flex;flex-wrap:wrap;gap:12px}
+.pr{margin:0 0 22px;font:700 20px Lato,sans-serif}.pr s{color:var(--muted);margin-right:8px}.pr b{font:700 40px "Cormorant Garamond",serif}.pr span{display:block;font-size:15px;color:var(--gold-d)}
+.cpn{background:var(--bg2);border:1px dashed var(--gold);border-radius:16px;padding:16px 18px;margin:16px 0}.cpn p{margin:4px 0 12px;color:var(--muted)}.cpn input{padding:12px 14px;border-radius:999px;border:2px solid var(--gold);background:var(--card);color:var(--ink);font:700 16px Lato,sans-serif;text-transform:uppercase;width:170px}
 .orb{position:relative;width:min(88%,440px);aspect-ratio:1;margin:0 auto}
 .orb:before{content:"";position:absolute;inset:-14px;border-radius:50%;background:conic-gradient(from 0deg,#f6dc8f,#b98a2c,#fff0b5,#a67c27,#f6dc8f);animation:spin 14s linear infinite;-webkit-mask:radial-gradient(circle,transparent 62%,#000 63%);mask:radial-gradient(circle,transparent 62%,#000 63%)}
 .orb img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;box-shadow:0 30px 60px -20px rgba(120,80,10,.55)}
@@ -66,7 +68,6 @@ h1{font-size:clamp(56px,11vw,112px);letter-spacing:-.01em;background:linear-grad
 /* video */
 .vid{position:relative;aspect-ratio:16/9;border-radius:22px;overflow:hidden;border:2px solid var(--gold);background:#000;box-shadow:0 24px 50px -24px rgba(120,80,10,.5)}
 .vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.vid video{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:contain;background:#000}
 .small{text-align:center;color:var(--muted);font-size:14px;margin-top:12px}
 .small a{color:var(--gold-d)}
 /* gallery */
@@ -100,6 +101,7 @@ footer a{color:var(--gold-d)}
       <p class="by">by Astro With Hrishi</p>
       <h1>Samriddhi Box</h1>
       <p class="tag">Celebrate traditions. Welcome new beginnings.</p>
+      <p class="pr"><s id="mrp"></s><b id="np"></b><span id="off"></span></p>
       <div class="cta">
         <a class="btn g" href="#pay">Order now</a>
         <a class="btn" href="#video">Watch video</a>
@@ -174,7 +176,11 @@ footer a{color:var(--gold-d)}
   <div class="pay rv">
     <div>
       <h3>Pay by UPI</h3>
-      <p style="margin:0" id="amt"></p>
+      <p style="margin:0;font-weight:700" id="amt"></p>
+      <div class="cpn"><b>Get ₹450 off</b><p>Subscribe to our YouTube channel and pay ₹2,300 instead of ₹2,750.</p>
+        <div class="cta" style="margin-bottom:12px"><a class="btn" id="sub" href="https://youtu.be/vbwcNiBbR3Q" target="_blank" rel="noopener">1. Subscribe on YouTube</a></div>
+        <div class="cta"><input id="cc" placeholder="2. Enter code" aria-label="Coupon code" autocomplete="off"><button class="btn g" id="ap" type="button">Apply</button></div>
+        <p class="small" id="cm" style="text-align:left;margin:10px 0 0" role="status"></p></div>
       <div class="upi"><code>hrishi.raval15@kotak</code><button class="btn" id="cp" type="button">Copy UPI ID</button></div>
       <ol class="steps"><li>Scan the QR or tap Pay with UPI app.</li><li>Send the payment screenshot, your name and address on WhatsApp.</li></ol>
       <div class="cta"><a class="btn g" id="up" href="#">Pay with UPI app</a><a class="btn" id="wa" href="#" target="_blank" rel="noopener">Order on WhatsApp</a></div>
@@ -192,16 +198,44 @@ footer a{color:var(--gold-d)}
 
 <div id="sb"><a class="btn g" href="#pay">Order now</a><a class="btn" style="color:var(--on-green)" id="wa2" href="#" target="_blank" rel="noopener">WhatsApp</a></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 document.documentElement.classList.add("js");
-const PRICE = 0; // set the box price in rupees, e.g. 1499. 0 hides the amount.
+const MRP = 2750, OFFER = 2300, CODE = "SUBSCRIBE"; // change price, offer price and coupon code here
 const UPI = "hrishi.raval15@kotak", NAME = "RAVAL HRISHI KAUSHIKBHAI", WA = "919512697556", YT = "vbwcNiBbR3Q";
 const $ = id => document.getElementById(id);
-const price = PRICE ? "₹" + PRICE.toLocaleString("en-IN") : "";
-$("amt").textContent = price ? "Amount: " + price : "Message us on WhatsApp to confirm the price before paying.";
-$("up").href = "upi://pay?pa=" + UPI + "&pn=" + encodeURIComponent(NAME) + (PRICE ? "&am=" + PRICE : "") + "&cu=INR&tn=Samriddhi%20Box";
-const msg = encodeURIComponent("Hi, I want to order the Samriddhi Box." + (price ? " (" + price + ")" : ""));
-$("wa").href = $("wa2").href = "https://wa.me/" + WA + "?text=" + msg;
+const fmt = n => "₹" + n.toLocaleString("en-IN");
+let applied = false;
+const qimg = document.querySelector(".pay > img");
+const qbox = document.createElement("div");
+qbox.style.cssText = "background:#fff;padding:14px;border-radius:14px;border:1px solid var(--line);width:fit-content;margin:0 auto;text-align:center";
+qimg.replaceWith(qbox);
+function drawQR(link, p){
+  qbox.innerHTML = "";
+  if(window.QRCode){
+    new QRCode(qbox, {text: link, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M});
+    const c = document.createElement("div"); c.textContent = "Scan to pay " + fmt(p);
+    c.style.cssText = "font:700 17px Lato,sans-serif;color:#3d2f21;margin-top:8px"; qbox.appendChild(c);
+  } else { qbox.appendChild(qimg); }
+}
+function render(){
+  const p = applied ? OFFER : MRP;
+  $("mrp").textContent = applied ? fmt(MRP) : "";
+  $("np").textContent = fmt(p);
+  $("off").textContent = applied ? "YouTube offer applied" : "Subscribe on YouTube and pay " + fmt(OFFER);
+  $("amt").textContent = "Amount to pay: " + fmt(p);
+  const link = "upi://pay?pa=" + UPI + "&pn=" + encodeURIComponent(NAME) + "&am=" + p + "&cu=INR&tn=Samriddhi%20Box";
+  $("up").href = link; drawQR(link, p);
+  const m = encodeURIComponent("Hi, I want to order the Samriddhi Box. Amount: " + fmt(p) + (applied ? ". I subscribed to your YouTube channel, screenshot attached." : ""));
+  $("wa").href = $("wa2").href = "https://wa.me/" + WA + "?text=" + m;
+}
+render();
+$("sub").addEventListener("click", () => { $("cm").textContent = "Thanks! Your code is " + CODE + ". Enter it above and tap Apply."; });
+$("ap").onclick = () => {
+  applied = $("cc").value.trim().toUpperCase() === CODE;
+  $("cm").textContent = applied ? "Code applied. You pay " + fmt(OFFER) + ". Send your subscribe screenshot on WhatsApp." : "Wrong code. Subscribe on YouTube to get the code.";
+  render();
+};
 $("cp").onclick = async () => { try { await navigator.clipboard.writeText(UPI); $("cp").textContent = "Copied"; } catch(e){ $("cp").textContent = "Copy not allowed"; } setTimeout(() => $("cp").textContent = "Copy UPI ID", 1800); };
 const words = ["Diwali","Dhanteras","Housewarming","Family","Friends","Special occasions"];
 const row = words.map(w => w + "<span>◆</span>").join(""); $("mq").innerHTML = row + row + row + row;
