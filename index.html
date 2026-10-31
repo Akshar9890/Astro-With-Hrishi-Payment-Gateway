@@ -176,7 +176,7 @@ footer a{color:var(--gold-d)}
   <div class="pay rv">
     <div>
       <h3>Your order</h3>
-      <ol class="steps"><li>Fill in your delivery details and tap Submit details.</li><li>Pay by QR or the UPI app.</li><li>Tap Submit order on WhatsApp. Your details reach us in one message.</li></ol>
+      <ol class="steps"><li>Fill in your delivery details and tap Submit details.</li><li>Pay by QR or the UPI app.</li><li>After paying, tap Confirm your order. Sending your details on WhatsApp is necessary.</li></ol>
       <div class="cpn"><b>Get ₹450 off</b><p>Subscribe to our YouTube channel and pay ₹2,300 instead of ₹2,750.</p>
         <div class="cta" style="margin-bottom:12px"><a class="btn" id="sub" href="https://youtu.be/vbwcNiBbR3Q" target="_blank" rel="noopener">1. Subscribe on YouTube</a></div>
         <div class="cta"><input id="cc" placeholder="2. Enter code" aria-label="Coupon code" autocomplete="off"><button class="btn g" id="ap" type="button">Apply</button></div>
@@ -188,8 +188,12 @@ footer a{color:var(--gold-d)}
         <p style="margin:0;font-weight:700" id="amt"></p>
         <div class="upi"><code>hrishi.raval15@kotak</code><button class="btn" id="cp" type="button">Copy UPI ID</button></div>
       <div class="cpn" id="shot" hidden role="status"><b>Last step: send your payment screenshot</b><p>Your order message is ready in WhatsApp. Press Send there. Then tap the paperclip (or + icon) in the same chat, attach your payment screenshot and press Send again.</p><a class="btn g" id="wa3" href="#" target="_blank" rel="noopener">Open WhatsApp chat again</a></div>
-      <div class="cta"><a class="btn g" id="up" href="#">Pay with UPI app</a><a class="btn" id="wa" href="#" target="_blank" rel="noopener">Submit order on WhatsApp</a></div>
+      <div class="cta"><a class="btn g" id="up" href="#">Pay with UPI app</a></div>
       <p class="small" style="text-align:left">Paying to Raval Hrishi Kaushikbhai. The UPI app button works on a phone.</p>
+        <div id="cfm" style="margin-top:18px;text-align:center">
+          <a class="btn" id="wa" href="#" target="_blank" rel="noopener" style="width:100%;box-sizing:border-box">Confirm your order</a>
+          <p class="small" style="margin-top:10px"><b>Important:</b> after you pay, you must send your details and payment screenshot on WhatsApp. Your order is not confirmed until we receive them there.</p>
+        </div>
       </div>
     </div>
     <img src="images/upi-qr.png" alt="UPI QR code for Raval Hrishi Kaushikbhai, Kotak" loading="lazy">
@@ -216,8 +220,11 @@ let applied = false;
 const qimg = document.querySelector(".pay > img");
 const qbox = document.createElement("div");
 qbox.style.cssText = "background:#fff;padding:14px;border-radius:14px;border:1px solid var(--line);width:fit-content;margin:0 auto;text-align:center";
-qimg.replaceWith(qbox);
-qbox.hidden = true;
+const qcol = document.createElement("div");
+qimg.replaceWith(qcol);
+qcol.appendChild(qbox);
+qcol.appendChild(document.getElementById("cfm"));
+qcol.hidden = true;
 function drawQR(link, p){
   qbox.innerHTML = "";
   if(window.QRCode){
@@ -249,7 +256,7 @@ $("sd").addEventListener("click", () => {
   const n = $("fn").value.trim(), ph = $("fp").value.replace(/\D/g, ""), a = $("fa").value.trim();
   if(!n || ph.length < 10 || a.length < 10){ $("fe").textContent = "Please enter your name, a 10 digit phone number and your full address first."; return; }
   $("fe").textContent = "";
-  $("payblk").hidden = false; qbox.hidden = false;
+  $("payblk").hidden = false; qcol.hidden = false;
   document.querySelector(".pay").classList.add("open");
   $("sd").textContent = "Update details";
   $("payblk").scrollIntoView({behavior: "smooth", block: "start"});
@@ -258,7 +265,7 @@ $("sd").addEventListener("click", () => {
   const n = $("fn").value.trim(), ph = $("fp").value.replace(/\D/g, ""), a = $("fa").value.trim();
   if(n && ph.length >= 10 && a.length >= 10 && $("payblk").hidden){
     $("fe").textContent = "";
-    $("payblk").hidden = false; qbox.hidden = false;
+    $("payblk").hidden = false; qcol.hidden = false;
     document.querySelector(".pay").classList.add("open");
     $("sd").textContent = "Update details";
   }
